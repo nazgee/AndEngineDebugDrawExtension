@@ -2,8 +2,10 @@ package org.andengine.extension.debugdraw;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.andengine.entity.Entity;
 import org.andengine.extension.debugdraw.primitives.Ellipse;
@@ -27,6 +29,8 @@ public class DebugRenderer extends Entity {
 	private PhysicsWorld mWorld;
 	private final VertexBufferObjectManager mVBO;
 	private HashMap<Body, RenderOfBody> mToBeRenderred = new HashMap<Body, RenderOfBody>();
+	private Set<RenderOfBody> mInactiveSet = new HashSet<RenderOfBody>();
+	private Set<RenderOfBody> mActiveSet = new HashSet<RenderOfBody>();
 
 	/**
 	 * To construct the renderer physical world is needed (to access physics)
@@ -49,6 +53,9 @@ public class DebugRenderer extends Entity {
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		super.onManagedUpdate(pSecondsElapsed);
 
+		mActiveSet.clear();
+		mInactiveSet.clear();
+
 		Iterator<Body> iterator = mWorld.getBodies();
 		while (iterator.hasNext()) {
 			Body body = iterator.next();
@@ -59,8 +66,9 @@ public class DebugRenderer extends Entity {
 				this.attachChild(renderOfBody);
 			} else {
 				renderOfBody = mToBeRenderred.get(body);
-				renderOfBody.keepRendering(true);
 			}
+
+			mActiveSet.add(renderOfBody);
 
 			/**
 			 * This is where debug renders are moved to match body position.
@@ -75,19 +83,15 @@ public class DebugRenderer extends Entity {
 
 		/**
 		 * Get rid of all bodies that where not rendered in this iteration
-		 * (where removed from physical world). Also assume that all other bodies
-		 * will not be rendered anymore (it will be verified on next iteration).
 		 */
-		Iterator<RenderOfBody> renderBodyIter = mToBeRenderred.values().iterator();
-		while ( renderBodyIter.hasNext()) {
-			RenderOfBody renderOfBody = renderBodyIter.next();
-			if (renderOfBody.hasToBeRendered()) {
-				renderOfBody.keepRendering(false);
-			} else {
-				renderBodyIter.remove();
-				this.detachChild(renderOfBody);
-			}
+		// inactive = renderred - active
+		mInactiveSet.addAll(mToBeRenderred.values());
+		mInactiveSet.removeAll(mActiveSet);
+		for (RenderOfBody killme : mInactiveSet) {
+			this.detachChild(killme);
 		}
+
+		mToBeRenderred.values().removeAll(mInactiveSet);
 	}
 
 	/**
@@ -203,12 +207,9 @@ public class DebugRenderer extends Entity {
 	 *
 	 */
 	private class RenderOfBody extends Entity {
-		public Body body;
 		public LinkedList<IRenderOfFixture> mRenderFixtures = new LinkedList<DebugRenderer.IRenderOfFixture>();
-		private boolean mKeepRendering = true;
 
 		public RenderOfBody(Body pBody, VertexBufferObjectManager pVBO) {
-			this.body = pBody;
 			ArrayList<Fixture> fixtures = pBody.getFixtureList();
 
 			/**
@@ -233,14 +234,6 @@ public class DebugRenderer extends Entity {
 			for (IRenderOfFixture renderOfFix : mRenderFixtures) {
 				renderOfFix.getEntity().setColor(fixtureToColor(renderOfFix.getFixture()));
 			}
-		}
-
-		public boolean hasToBeRendered() {
-			return mKeepRendering;
-		}
-
-		public void keepRendering(boolean pRender) {
-			this.mKeepRendering = pRender;
 		}
 	}
 }
