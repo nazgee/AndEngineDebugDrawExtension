@@ -78,12 +78,13 @@ public class DebugRenderer extends Entity {
 		 * (where removed from physical world). Also assume that all other bodies
 		 * will not be rendered anymore (it will be verified on next iteration).
 		 */
-		for (Iterator<RenderOfBody> renderBodyIter = mToBeRenderred.values().iterator(); renderBodyIter.hasNext();) {
+		Iterator<RenderOfBody> renderBodyIter = mToBeRenderred.values().iterator();
+		while ( renderBodyIter.hasNext()) {
 			RenderOfBody renderOfBody = renderBodyIter.next();
 			if (renderOfBody.hasToBeRendered()) {
 				renderOfBody.keepRendering(false);
 			} else {
-				mToBeRenderred.remove(renderOfBody.body);
+				renderBodyIter.remove();
 				this.detachChild(renderOfBody);
 			}
 		}
