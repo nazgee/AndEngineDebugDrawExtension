@@ -76,6 +76,7 @@ public class DebugRenderer extends Entity {
 			 * GLES2-AnchorCenter branch of AE (ie. you are using old GLES2 branch)
 			 */
 			renderOfBody.updateColor();
+			// XXX for some reason, setRotationCenter() is not needed on GLES2 branch... why?
 			//renderOfBody.setRotationCenter(body.getMassData().center.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getMassData().center.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
 			renderOfBody.setRotation((float) (body.getAngle() * (180 / Math.PI)));
 			renderOfBody.setPosition(body.getPosition().x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getPosition().y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
