@@ -8,21 +8,13 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.andengine.entity.Entity;
-import org.andengine.extension.debugdraw.primitives.Ellipse;
-import org.andengine.extension.debugdraw.primitives.PolyLine;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.extension.physics.box2d.util.Vector2Pool;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.adt.color.Color;
 
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.ChainShape;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape.Type;
 
 
@@ -128,144 +120,12 @@ public class DebugRenderer extends Entity {
 	}
 
 	/**
-	 * Binds fixture and it's graphical representation together
-	 * @author nazgee
-	 */
-	private interface IRenderOfFixture {
-		public Fixture getFixture();
-		public Entity getEntity();
-	}
-
-	/**
-	 * Base implementation of fixture and it's graphical representation bound together
-	 * @author nazgee
-	 */
-	private static abstract class RenderOfFixture implements IRenderOfFixture {
-		protected final Fixture fixture;
-		protected Entity entity;
-
-		public RenderOfFixture(Fixture fixture) {
-			super();
-			this.fixture = fixture;
-		}
-
-		@Override
-		public Fixture getFixture() {
-			return fixture;
-		}
-
-		@Override
-		public Entity getEntity() {
-			return entity;
-		}
-	}
-
-	/**
-	 * Circular fixture representation
-	 * @author nazgee
-	 */
-	private static class RenderOfCircleFixture extends RenderOfFixture {
-		public RenderOfCircleFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
-			super(fixture);
-
-			CircleShape fixtureShape = (CircleShape) fixture.getShape();
-			Vector2 position = fixtureShape.getPosition();
-			float radius = fixtureShape.getRadius() * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-
-			entity = new Ellipse(position.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
-					position.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
-					radius, radius, pVBO);
-		}
-	}
-
-	/**
-	 * Polygonal fixture representation
-	 * @author nazgee
-	 */
-	private static class RenderOfPolyFixture extends RenderOfFixture {
-		public RenderOfPolyFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
-			super(fixture);
-
-			PolygonShape fixtureShape = (PolygonShape) fixture.getShape();
-			int vSize = fixtureShape.getVertexCount();
-			float[] xPoints = new float[vSize];
-			float[] yPoints = new float[vSize];
-
-			Vector2 vertex = Vector2Pool.obtain();
-			for (int i = 0; i < fixtureShape.getVertexCount(); i++) {
-				fixtureShape.getVertex(i, vertex);
-				xPoints[i] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-				yPoints[i] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			}
-			Vector2Pool.recycle(vertex);
-
-			entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
-		}
-	}
-
-	/**
-	 * Chain fixture representation
-	 * @author nazgee
-	 */
-	private static class RenderOfChainFixture extends RenderOfFixture {
-		public RenderOfChainFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
-			super(fixture);
-
-			ChainShape fixtureShape = (ChainShape) fixture.getShape();
-			int vSize = fixtureShape.getVertexCount();
-			float[] xPoints = new float[vSize];
-			float[] yPoints = new float[vSize];
-
-			Vector2 vertex = Vector2Pool.obtain();
-			for (int i = 0; i < fixtureShape.getVertexCount(); i++) {
-				fixtureShape.getVertex(i, vertex);
-				xPoints[i] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-				yPoints[i] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			}
-			Vector2Pool.recycle(vertex);
-
-			entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
-		}
-	}
-
-	/**
-	 * Edge fixture representation
-	 * @author OzLark
-	 */
-	private static class RenderOfEdgeFixture extends RenderOfFixture {
-		public RenderOfEdgeFixture(Fixture fixture,
-				VertexBufferObjectManager pVBO) {
-			super(fixture);
-
-			EdgeShape fixtureShape = (EdgeShape) fixture.getShape();
-
-			float[] xPoints = new float[2];
-			float[] yPoints = new float[2];
-
-			Vector2 vertex = Vector2Pool.obtain();
-
-			fixtureShape.getVertex1(vertex);
-			xPoints[0] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			yPoints[0] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-
-			fixtureShape.getVertex2(vertex);
-			xPoints[1] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			yPoints[1] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-
-			Vector2Pool.recycle(vertex);
-
-			entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
-		}
-	}
-
-
-	/**
 	 * Physical body representation- it contains of multiple RenderFixture
 	 * @author nazgee
 	 *
 	 */
 	private class RenderOfBody extends Entity {
-		public LinkedList<IRenderOfFixture> mRenderFixtures = new LinkedList<DebugRenderer.IRenderOfFixture>();
+		public LinkedList<IRenderOfFixture> mRenderFixtures = new LinkedList<IRenderOfFixture>();
 
 		public RenderOfBody(Body pBody, VertexBufferObjectManager pVBO) {
 			ArrayList<Fixture> fixtures = pBody.getFixtureList();
