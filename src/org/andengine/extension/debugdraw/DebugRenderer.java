@@ -138,10 +138,6 @@ public class DebugRenderer extends Entity {
 				IRenderOfFixture renderOfFixture;
 				if (fixture.getShape().getType() == Type.Circle) {
 					renderOfFixture = new RenderOfCircleFixture(fixture, pVBO);
-				} else if (fixture.getShape().getType() == Type.Edge) {
-					renderOfFixture = new RenderOfEdgeFixture(fixture, pVBO);
-				} else if (fixture.getShape().getType() == Type.Chain) {
-					renderOfFixture = new RenderOfChainFixture(fixture, pVBO);
 				} else {
 					renderOfFixture = new RenderOfPolyFixture(fixture, pVBO);
 				}
