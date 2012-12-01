@@ -18,6 +18,7 @@ import org.andengine.util.adt.color.Color;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -203,7 +204,32 @@ public class DebugRenderer extends Entity {
 	}
 
 	/**
-	 * Polygonal fixture representation
+	 * Chain fixture representation
+	 * @author nazgee
+	 */
+	private static class RenderOfChainFixture extends RenderOfFixture {
+		public RenderOfChainFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
+			super(fixture);
+
+			ChainShape fixtureShape = (ChainShape) fixture.getShape();
+			int vSize = fixtureShape.getVertexCount();
+			float[] xPoints = new float[vSize];
+			float[] yPoints = new float[vSize];
+
+			Vector2 vertex = Vector2Pool.obtain();
+			for (int i = 0; i < fixtureShape.getVertexCount(); i++) {
+				fixtureShape.getVertex(i, vertex);
+				xPoints[i] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+				yPoints[i] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			}
+			Vector2Pool.recycle(vertex);
+
+			entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
+		}
+	}
+
+	/**
+	 * Edge fixture representation
 	 * @author OzLark
 	 */
 	private static class RenderOfEdgeFixture extends RenderOfFixture {
@@ -254,6 +280,8 @@ public class DebugRenderer extends Entity {
 					renderOfFixture = new RenderOfCircleFixture(fixture, pVBO);
 				} else if (fixture.getShape().getType() == Type.Edge) {
 					renderOfFixture = new RenderOfEdgeFixture(fixture, pVBO);
+				} else if (fixture.getShape().getType() == Type.Edge) {
+					renderOfFixture = new RenderOfChainFixture(fixture, pVBO);
 				} else {
 					renderOfFixture = new RenderOfPolyFixture(fixture, pVBO);
 				}
