@@ -19,6 +19,7 @@ import org.andengine.util.adt.color.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.Shape.Type;
@@ -202,6 +203,37 @@ public class DebugRenderer extends Entity {
 	}
 
 	/**
+	 * Polygonal fixture representation
+	 * @author OzLark
+	 */
+	private static class RenderOfEdgeFixture extends RenderOfFixture {
+		public RenderOfEdgeFixture(Fixture fixture,
+				VertexBufferObjectManager pVBO) {
+			super(fixture);
+
+			EdgeShape fixtureShape = (EdgeShape) fixture.getShape();
+
+			float[] xPoints = new float[2];
+			float[] yPoints = new float[2];
+
+			Vector2 vertex = Vector2Pool.obtain();
+
+			fixtureShape.getVertex1(vertex);
+			xPoints[0] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			yPoints[0] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+
+			fixtureShape.getVertex2(vertex);
+			xPoints[1] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			yPoints[1] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+
+			Vector2Pool.recycle(vertex);
+
+			entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
+		}
+	}
+
+
+	/**
 	 * Physical body representation- it contains of multiple RenderFixture
 	 * @author nazgee
 	 *
@@ -220,6 +252,8 @@ public class DebugRenderer extends Entity {
 				IRenderOfFixture renderOfFixture;
 				if (fixture.getShape().getType() == Type.Circle) {
 					renderOfFixture = new RenderOfCircleFixture(fixture, pVBO);
+				} else if (fixture.getShape().getType() == Type.Edge) {
+					renderOfFixture = new RenderOfEdgeFixture(fixture, pVBO);
 				} else {
 					renderOfFixture = new RenderOfPolyFixture(fixture, pVBO);
 				}
