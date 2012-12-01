@@ -9,21 +9,21 @@ import com.badlogic.gdx.physics.box2d.Fixture;
  * @author nazgee
  */
 abstract class RenderOfFixture implements IRenderOfFixture {
-	protected final Fixture fixture;
-	protected Entity entity;
+	protected final Fixture mFixture;
+	protected Entity mEntity;
 
 	public RenderOfFixture(Fixture fixture) {
 		super();
-		this.fixture = fixture;
+		this.mFixture = fixture;
 	}
 
 	@Override
 	public Fixture getFixture() {
-		return fixture;
+		return mFixture;
 	}
 
 	@Override
 	public Entity getEntity() {
-		return entity;
+		return mEntity;
 	}
 }

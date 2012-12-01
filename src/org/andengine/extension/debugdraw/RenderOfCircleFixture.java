@@ -20,7 +20,7 @@ class RenderOfCircleFixture extends RenderOfFixture {
 		Vector2 position = fixtureShape.getPosition();
 		float radius = fixtureShape.getRadius() * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
 
-		entity = new Ellipse(position.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+		mEntity = new Ellipse(position.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
 				position.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
 				radius, radius, pVBO);
 	}

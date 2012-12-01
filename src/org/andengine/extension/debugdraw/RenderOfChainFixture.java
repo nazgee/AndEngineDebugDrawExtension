@@ -30,6 +30,6 @@ class RenderOfChainFixture extends RenderOfFixture {
 		}
 		Vector2Pool.recycle(vertex);
 
-		entity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
+		mEntity = new PolyLine(0, 0, xPoints, yPoints, pVBO);
 	}
 }
