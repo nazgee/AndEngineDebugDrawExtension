@@ -13,8 +13,11 @@ import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.adt.color.Color;
 
+import android.util.Log;
+
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.Shape.Type;
 
 
@@ -22,9 +25,14 @@ import com.badlogic.gdx.physics.box2d.Shape.Type;
 public class DebugRenderer extends Entity {
 	private PhysicsWorld mWorld;
 	private final VertexBufferObjectManager mVBO;
+
 	private HashMap<Body, RenderOfBody> mToBeRenderred = new HashMap<Body, RenderOfBody>();
 	private Set<RenderOfBody> mInactiveSet = new HashSet<RenderOfBody>();
 	private Set<RenderOfBody> mActiveSet = new HashSet<RenderOfBody>();
+
+	private HashMap<Joint, RenderOfJoint> mJointsToBeRenderred = new HashMap<Joint, RenderOfJoint>();
+	private Set<RenderOfJoint> mJointsInactiveSet = new HashSet<RenderOfJoint>();
+	private Set<RenderOfJoint> mJointsActiveSet = new HashSet<RenderOfJoint>();
 
 	/**
 	 * To construct the renderer physical world is needed (to access physics)
@@ -47,6 +55,8 @@ public class DebugRenderer extends Entity {
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		super.onManagedUpdate(pSecondsElapsed);
 
+		// BODIES
+
 		mActiveSet.clear();
 		mInactiveSet.clear();
 
@@ -67,7 +77,7 @@ public class DebugRenderer extends Entity {
 			/**
 			 * This is where debug renders are moved to match body position.
 			 * These 4 lines probably have to be modified if you are not using new
-			 * GLES2-AnchorCenter branch of AE (ie. you are using old GLES2 branch)
+			 * GLES2-AnchorCenter branch of AE (i.e. you are using old GLES2 branch)
 			 */
 			renderOfBody.updateColor();
 			renderOfBody.setRotationCenter(body.getMassData().center.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getMassData().center.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
@@ -86,6 +96,46 @@ public class DebugRenderer extends Entity {
 		}
 
 		mToBeRenderred.values().removeAll(mInactiveSet);
+
+		// JOINTS
+
+		mJointsActiveSet.clear();
+		mJointsInactiveSet.clear();
+
+		Iterator<Joint> iteratorJoints = mWorld.getJoints();
+		while (iteratorJoints.hasNext()) {
+//			Log.e(getClass().getSimpleName(), "foo");
+			Joint joint = iteratorJoints.next();
+			RenderOfJoint renderOfJoint;
+			if (!mJointsToBeRenderred.containsKey(joint)) {
+				renderOfJoint = new RenderOfJoint(joint, mVBO);
+				mJointsToBeRenderred.put(joint, renderOfJoint);
+				this.attachChild(renderOfJoint);
+			} else {
+				renderOfJoint = mJointsToBeRenderred.get(joint);
+			}
+
+			mJointsActiveSet.add(renderOfJoint);
+
+			/**
+			 * This is where debug renders are moved to match body position.
+			 * These 4 lines probably have to be modified if you are not using new
+			 * GLES2-AnchorCenter branch of AE (i.e. you are using old GLES2 branch)
+			 */
+			renderOfJoint.update();
+		}
+
+		/**
+		 * Get rid of all bodies that where not rendered in this iteration
+		 */
+		// inactive = renderred - active
+		mJointsInactiveSet.addAll(mJointsToBeRenderred.values());
+		mJointsInactiveSet.removeAll(mJointsActiveSet);
+		for (RenderOfJoint killme : mJointsInactiveSet) {
+			this.detachChild(killme);
+		}
+
+		mJointsToBeRenderred.values().removeAll(mJointsInactiveSet);
 	}
 
 	/**
@@ -156,6 +206,24 @@ public class DebugRenderer extends Entity {
 			for (IRenderOfFixture renderOfFix : mRenderFixtures) {
 				renderOfFix.getEntity().setColor(fixtureToColor(renderOfFix.getFixture()));
 			}
+		}
+	}
+
+	/**
+	 * Physical body representation- it contains of multiple RenderFixture
+	 * @author nazgee
+	 *
+	 */
+	private static class RenderOfJoint extends Entity {
+		RenderOfJointPolyline mRender;
+
+		public RenderOfJoint(Joint pJoint, VertexBufferObjectManager pVBO) {
+			mRender = new RenderOfJointPolyline(pJoint, pVBO);
+			this.attachChild(mRender.getEntity());
+		}
+
+		public void update() {
+			mRender.update();
 		}
 	}
 }
