@@ -24,10 +24,12 @@ public class DebugRenderer extends Entity {
 	private PhysicsWorld mWorld;
 	private final VertexBufferObjectManager mVBO;
 
-	private HashMap<Body, RenderOfBody> mToBeRenderred = new HashMap<Body, RenderOfBody>();
-	private Set<RenderOfBody> mInactiveSet = new HashSet<RenderOfBody>();
-	private Set<RenderOfBody> mActiveSet = new HashSet<RenderOfBody>();
+	// bodies to be rendered
+	private HashMap<Body, RenderOfBody> mBodiesToBeRenderred = new HashMap<Body, RenderOfBody>();
+	private Set<RenderOfBody> mBodiesInactiveSet = new HashSet<RenderOfBody>();
+	private Set<RenderOfBody> mBodiesActiveSet = new HashSet<RenderOfBody>();
 
+	// joints to be rendered
 	private HashMap<Joint, IRenderOfJoint> mJointsToBeRenderred = new HashMap<Joint, IRenderOfJoint>();
 	private Set<IRenderOfJoint> mJointsInactiveSet = new HashSet<IRenderOfJoint>();
 	private Set<IRenderOfJoint> mJointsActiveSet = new HashSet<IRenderOfJoint>();
@@ -55,22 +57,22 @@ public class DebugRenderer extends Entity {
 
 		// *** BODIES
 
-		mActiveSet.clear();
-		mInactiveSet.clear();
+		mBodiesActiveSet.clear();
+		mBodiesInactiveSet.clear();
 
 		Iterator<Body> iterator = mWorld.getBodies();
 		while (iterator.hasNext()) {
 			Body body = iterator.next();
 			RenderOfBody renderOfBody;
-			if (!mToBeRenderred.containsKey(body)) {
+			if (!mBodiesToBeRenderred.containsKey(body)) {
 				renderOfBody = new RenderOfBody(body, mVBO);
-				mToBeRenderred.put(body, renderOfBody);
+				mBodiesToBeRenderred.put(body, renderOfBody);
 				this.attachChild(renderOfBody);
 			} else {
-				renderOfBody = mToBeRenderred.get(body);
+				renderOfBody = mBodiesToBeRenderred.get(body);
 			}
 
-			mActiveSet.add(renderOfBody);
+			mBodiesActiveSet.add(renderOfBody);
 
 			/**
 			 * This is where debug renders are moved to match body position.
@@ -87,13 +89,13 @@ public class DebugRenderer extends Entity {
 		 * Get rid of all bodies that were not rendered in this iteration
 		 */
 		// inactive = renderred - active
-		mInactiveSet.addAll(mToBeRenderred.values());
-		mInactiveSet.removeAll(mActiveSet);
-		for (RenderOfBody killme : mInactiveSet) {
+		mBodiesInactiveSet.addAll(mBodiesToBeRenderred.values());
+		mBodiesInactiveSet.removeAll(mBodiesActiveSet);
+		for (RenderOfBody killme : mBodiesInactiveSet) {
 			this.detachChild(killme);
 		}
 
-		mToBeRenderred.values().removeAll(mInactiveSet);
+		mBodiesToBeRenderred.values().removeAll(mBodiesInactiveSet);
 
 		// *** JOINTS
 
@@ -189,7 +191,7 @@ public class DebugRenderer extends Entity {
 	}
 
 	/**
-	 * Physical body representation- it contains of multiple RenderFixture
+	 * Physical body representation- it contains of multiple IRenderOfFixture
 	 * @author nazgee
 	 *
 	 */
