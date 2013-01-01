@@ -11,4 +11,5 @@ import com.badlogic.gdx.physics.box2d.Joint;
 interface IRenderOfJoint {
 	public Joint getJoint();
 	public Entity getEntity();
+	public void update();
 }

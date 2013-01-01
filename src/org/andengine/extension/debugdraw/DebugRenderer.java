@@ -13,8 +13,6 @@ import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.adt.color.Color;
 
-import android.util.Log;
-
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Joint;
@@ -30,9 +28,9 @@ public class DebugRenderer extends Entity {
 	private Set<RenderOfBody> mInactiveSet = new HashSet<RenderOfBody>();
 	private Set<RenderOfBody> mActiveSet = new HashSet<RenderOfBody>();
 
-	private HashMap<Joint, RenderOfJoint> mJointsToBeRenderred = new HashMap<Joint, RenderOfJoint>();
-	private Set<RenderOfJoint> mJointsInactiveSet = new HashSet<RenderOfJoint>();
-	private Set<RenderOfJoint> mJointsActiveSet = new HashSet<RenderOfJoint>();
+	private HashMap<Joint, IRenderOfJoint> mJointsToBeRenderred = new HashMap<Joint, IRenderOfJoint>();
+	private Set<IRenderOfJoint> mJointsInactiveSet = new HashSet<IRenderOfJoint>();
+	private Set<IRenderOfJoint> mJointsActiveSet = new HashSet<IRenderOfJoint>();
 
 	/**
 	 * To construct the renderer physical world is needed (to access physics)
@@ -55,7 +53,7 @@ public class DebugRenderer extends Entity {
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		super.onManagedUpdate(pSecondsElapsed);
 
-		// BODIES
+		// *** BODIES
 
 		mActiveSet.clear();
 		mInactiveSet.clear();
@@ -86,7 +84,7 @@ public class DebugRenderer extends Entity {
 		}
 
 		/**
-		 * Get rid of all bodies that where not rendered in this iteration
+		 * Get rid of all bodies that were not rendered in this iteration
 		 */
 		// inactive = renderred - active
 		mInactiveSet.addAll(mToBeRenderred.values());
@@ -97,42 +95,36 @@ public class DebugRenderer extends Entity {
 
 		mToBeRenderred.values().removeAll(mInactiveSet);
 
-		// JOINTS
+		// *** JOINTS
 
 		mJointsActiveSet.clear();
 		mJointsInactiveSet.clear();
 
 		Iterator<Joint> iteratorJoints = mWorld.getJoints();
 		while (iteratorJoints.hasNext()) {
-//			Log.e(getClass().getSimpleName(), "foo");
 			Joint joint = iteratorJoints.next();
-			RenderOfJoint renderOfJoint;
+			IRenderOfJoint renderOfJoint;
 			if (!mJointsToBeRenderred.containsKey(joint)) {
-				renderOfJoint = new RenderOfJoint(joint, mVBO);
+				renderOfJoint = new RenderOfJointPolyline(joint, mVBO);
 				mJointsToBeRenderred.put(joint, renderOfJoint);
-				this.attachChild(renderOfJoint);
+				this.attachChild(renderOfJoint.getEntity());
 			} else {
 				renderOfJoint = mJointsToBeRenderred.get(joint);
 			}
 
 			mJointsActiveSet.add(renderOfJoint);
-
-			/**
-			 * This is where debug renders are moved to match body position.
-			 * These 4 lines probably have to be modified if you are not using new
-			 * GLES2-AnchorCenter branch of AE (i.e. you are using old GLES2 branch)
-			 */
 			renderOfJoint.update();
+			renderOfJoint.getEntity().setColor(jointToColor(renderOfJoint.getJoint()));
 		}
 
 		/**
-		 * Get rid of all bodies that where not rendered in this iteration
+		 * Get rid of all joints that were not rendered in this iteration
 		 */
 		// inactive = renderred - active
 		mJointsInactiveSet.addAll(mJointsToBeRenderred.values());
 		mJointsInactiveSet.removeAll(mJointsActiveSet);
-		for (RenderOfJoint killme : mJointsInactiveSet) {
-			this.detachChild(killme);
+		for (IRenderOfJoint killme : mJointsInactiveSet) {
+			this.detachChild(killme.getEntity());
 		}
 
 		mJointsToBeRenderred.values().removeAll(mJointsInactiveSet);
@@ -166,6 +158,33 @@ public class DebugRenderer extends Entity {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Translates b2d Joint to appropriate color, depending on state/type
+	 * Modify to suit your needs
+	 * @param joint
+	 * @return
+	 */
+
+	private static Color jointToColor(Joint joint) {
+		switch (joint.getType()) {
+		case RevoluteJoint:
+		case PrismaticJoint:
+		case DistanceJoint:
+		case PulleyJoint:
+		case MouseJoint:
+		case GearJoint:
+		case WheelJoint:
+		case WeldJoint:
+		case FrictionJoint:
+		case RopeJoint:
+			return Color.WHITE;
+
+		case Unknown:
+		default:
+			return Color.WHITE;
 		}
 	}
 
@@ -206,24 +225,6 @@ public class DebugRenderer extends Entity {
 			for (IRenderOfFixture renderOfFix : mRenderFixtures) {
 				renderOfFix.getEntity().setColor(fixtureToColor(renderOfFix.getFixture()));
 			}
-		}
-	}
-
-	/**
-	 * Physical body representation- it contains of multiple RenderFixture
-	 * @author nazgee
-	 *
-	 */
-	private static class RenderOfJoint extends Entity {
-		RenderOfJointPolyline mRender;
-
-		public RenderOfJoint(Joint pJoint, VertexBufferObjectManager pVBO) {
-			mRender = new RenderOfJointPolyline(pJoint, pVBO);
-			this.attachChild(mRender.getEntity());
-		}
-
-		public void update() {
-			mRender.update();
 		}
 	}
 }

@@ -3,6 +3,7 @@ package org.andengine.extension.debugdraw;
 import org.andengine.extension.debugdraw.primitives.PolyLine;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.andengine.util.adt.color.Color;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -30,6 +31,7 @@ class RenderOfJointPolyline extends RenderOfJoint {
 		}
 
 		mEntity = new PolyLine(0, 0, mXPoints, mYPoints, pVBO);
+		mEntity.setColor(Color.RED);
 	}
 
 	@Override
@@ -41,23 +43,11 @@ class RenderOfJointPolyline extends RenderOfJoint {
 		Vector2 aA = getJoint().getAnchorA();
 		Vector2 aB = getJoint().getAnchorB();
 
-//		Body bA = getJoint().getBodyA();
-//		Body bB = getJoint().getBodyB();
-//
-//		mXPoints[0] = bA.getWorldPoint(aA).x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-//		mYPoints[0] = bA.getWorldPoint(aA).y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-//
-//		mXPoints[1] = bB.getWorldPoint(aB).x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-//		mYPoints[1] = bB.getWorldPoint(aB).y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-
 		mXPoints[0] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
 		mYPoints[0] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
 
 		mXPoints[1] = aB.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
 		mYPoints[1] = aB.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-
-		mXPoints[0] = 100;
-		mYPoints[0] = 100;
 
 		getEntity().updateVertices(mXPoints, mYPoints);
 	}
