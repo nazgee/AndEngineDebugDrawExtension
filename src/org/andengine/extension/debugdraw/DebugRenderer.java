@@ -15,6 +15,7 @@ import org.andengine.util.color.Color;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.Shape.Type;
 
 
@@ -22,9 +23,20 @@ import com.badlogic.gdx.physics.box2d.Shape.Type;
 public class DebugRenderer extends Entity {
 	private PhysicsWorld mWorld;
 	private final VertexBufferObjectManager mVBO;
-	private HashMap<Body, RenderOfBody> mToBeRenderred = new HashMap<Body, RenderOfBody>();
-	private Set<RenderOfBody> mInactiveSet = new HashSet<RenderOfBody>();
-	private Set<RenderOfBody> mActiveSet = new HashSet<RenderOfBody>();
+
+	// bodies to be rendered
+	private HashMap<Body, RenderOfBody> mBodiesToBeRenderred = new HashMap<Body, RenderOfBody>();
+	private Set<RenderOfBody> mBodiesInactiveSet = new HashSet<RenderOfBody>();
+	private Set<RenderOfBody> mBodiesActiveSet = new HashSet<RenderOfBody>();
+
+	// joints to be rendered
+	private HashMap<Joint, IRenderOfJoint> mJointsToBeRenderred = new HashMap<Joint, IRenderOfJoint>();
+	private Set<IRenderOfJoint> mJointsInactiveSet = new HashSet<IRenderOfJoint>();
+	private Set<IRenderOfJoint> mJointsActiveSet = new HashSet<IRenderOfJoint>();
+
+	private final float mJointMarkerSize;
+	private boolean mDrawJoints = true;
+	private boolean mDrawBodies = true;
 
 	/**
 	 * To construct the renderer physical world is needed (to access physics)
@@ -33,9 +45,14 @@ public class DebugRenderer extends Entity {
 	 * @param pVBO
 	 */
 	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO) {
+		this(world, pVBO, 5);
+	}
+
+	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO, float pJointMarkerSize) {
 		super();
 		this.mWorld = world;
 		this.mVBO = pVBO;
+		this.mJointMarkerSize = pJointMarkerSize;
 	}
 
 	/**
@@ -47,46 +64,93 @@ public class DebugRenderer extends Entity {
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		super.onManagedUpdate(pSecondsElapsed);
 
-		mActiveSet.clear();
-		mInactiveSet.clear();
+		// *** BODIES
 
-		Iterator<Body> iterator = mWorld.getBodies();
-		while (iterator.hasNext()) {
-			Body body = iterator.next();
-			RenderOfBody renderOfBody;
-			if (!mToBeRenderred.containsKey(body)) {
-				renderOfBody = new RenderOfBody(body, mVBO);
-				mToBeRenderred.put(body, renderOfBody);
-				this.attachChild(renderOfBody);
-			} else {
-				renderOfBody = mToBeRenderred.get(body);
-			}
+		if (isDrawBodies()) {
+			mBodiesActiveSet.clear();
+			mBodiesInactiveSet.clear();
+			Iterator<Body> iterator = mWorld.getBodies();
+			while (iterator.hasNext()) {
+				Body body = iterator.next();
+				RenderOfBody renderOfBody;
+				if (!mBodiesToBeRenderred.containsKey(body)) {
+					renderOfBody = new RenderOfBody(body, mVBO);
+					mBodiesToBeRenderred.put(body, renderOfBody);
+					this.attachChild(renderOfBody);
+				} else {
+					renderOfBody = mBodiesToBeRenderred.get(body);
+				}
 
-			mActiveSet.add(renderOfBody);
+				mBodiesActiveSet.add(renderOfBody);
 
-			/**
-			 * This is where debug renders are moved to match body position.
-			 * These 4 lines probably have to be modified if you are not using new
-			 * GLES2-AnchorCenter branch of AE (ie. you are using old GLES2 branch)
-			 */
-			renderOfBody.updateColor();
+				/**
+				 * This is where debug renders are moved to match body position.
+				 * These 4 lines probably have to be modified if you are not using new
+				 * GLES2-AnchorCenter branch of AE (i.e. you are using old GLES2 branch)
+				 */
+				renderOfBody.updateColor();
 			// XXX for some reason, setRotationCenter() is not needed on GLES2 branch... why?
 			//renderOfBody.setRotationCenter(body.getMassData().center.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getMassData().center.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
 			renderOfBody.setRotation((float) (body.getAngle() * (180 / Math.PI)));
-			renderOfBody.setPosition(body.getPosition().x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getPosition().y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+								body.getMassData().center.y
+										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+				renderOfBody.setRotation((float) (360 - body.getAngle()
+						* (180 / Math.PI)));
+				renderOfBody
+						.setPosition(
+								body.getPosition().x
+										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+								body.getPosition().y
+										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+			}
+			/**
+			 * Get rid of all bodies that were not rendered in this iteration
+			 */
+			// inactive = renderred - active
+			mBodiesInactiveSet.addAll(mBodiesToBeRenderred.values());
+			mBodiesInactiveSet.removeAll(mBodiesActiveSet);
+			for (RenderOfBody killme : mBodiesInactiveSet) {
+				this.detachChild(killme);
+			}
+			mBodiesToBeRenderred.values().removeAll(mBodiesInactiveSet);
 		}
+		
 
-		/**
-		 * Get rid of all bodies that where not rendered in this iteration
-		 */
-		// inactive = renderred - active
-		mInactiveSet.addAll(mToBeRenderred.values());
-		mInactiveSet.removeAll(mActiveSet);
-		for (RenderOfBody killme : mInactiveSet) {
-			this.detachChild(killme);
+		// *** JOINTS
+
+		if (isDrawJoints()) {
+			mJointsActiveSet.clear();
+			mJointsInactiveSet.clear();
+			Iterator<Joint> iteratorJoints = mWorld.getJoints();
+			while (iteratorJoints.hasNext()) {
+				Joint joint = iteratorJoints.next();
+				IRenderOfJoint renderOfJoint;
+				if (!mJointsToBeRenderred.containsKey(joint)) {
+					renderOfJoint = new RenderOfJointPolyline(joint, mVBO,
+							mJointMarkerSize);
+					mJointsToBeRenderred.put(joint, renderOfJoint);
+					this.attachChild(renderOfJoint.getEntity());
+				} else {
+					renderOfJoint = mJointsToBeRenderred.get(joint);
+				}
+
+				mJointsActiveSet.add(renderOfJoint);
+				renderOfJoint.update();
+				renderOfJoint.getEntity().setColor(
+						jointToColor(renderOfJoint.getJoint()));
+			}
+			/**
+			 * Get rid of all joints that were not rendered in this iteration
+			 */
+			// inactive = renderred - active
+			mJointsInactiveSet.addAll(mJointsToBeRenderred.values());
+			mJointsInactiveSet.removeAll(mJointsActiveSet);
+			for (IRenderOfJoint killme : mJointsInactiveSet) {
+				this.detachChild(killme.getEntity());
+			}
+			mJointsToBeRenderred.values().removeAll(mJointsInactiveSet);
 		}
-
-		mToBeRenderred.values().removeAll(mInactiveSet);
 	}
 
 	/**
@@ -121,7 +185,32 @@ public class DebugRenderer extends Entity {
 	}
 
 	/**
-	 * Physical body representation- it contains of multiple RenderFixture
+	 * Translates b2d Joint to appropriate color, depending on state/type
+	 * Modify to suit your needs
+	 * @param joint
+	 * @return
+	 */
+
+	private static Color jointToColor(Joint joint) {
+		switch (joint.getType()) {
+		case RevoluteJoint:
+		case PrismaticJoint:
+		case DistanceJoint:
+		case PulleyJoint:
+		case MouseJoint:
+		case GearJoint:
+		case WeldJoint:
+		case FrictionJoint:
+			return Color.WHITE;
+
+		case Unknown:
+		default:
+			return Color.WHITE;
+		}
+	}
+
+	/**
+	 * Physical body representation- it contains of multiple IRenderOfFixture
 	 * @author nazgee
 	 *
 	 */
@@ -154,5 +243,21 @@ public class DebugRenderer extends Entity {
 				renderOfFix.getEntity().setColor(fixtureToColor(renderOfFix.getFixture()));
 			}
 		}
+	}
+
+	public boolean isDrawJoints() {
+		return mDrawJoints;
+	}
+
+	public void setDrawJoints(boolean mDrawJoints) {
+		this.mDrawJoints = mDrawJoints;
+	}
+
+	public boolean isDrawBodies() {
+		return mDrawBodies;
+	}
+
+	public void setDrawBodies(boolean mDrawBodies) {
+		this.mDrawBodies = mDrawBodies;
 	}
 }
