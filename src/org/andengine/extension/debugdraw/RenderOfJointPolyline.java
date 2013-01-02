@@ -35,11 +35,22 @@ class RenderOfJointPolyline extends RenderOfJoint {
 		return (PolyLine) super.getEntity();
 	}
 
+	/** Compares this vector with the other vector, using the supplied epsilon for fuzzy equality testing.
+	 * @param objA
+	 * @param objB
+	 * @param epsilon
+	 * @return whether the vectors are the same. */
+	private boolean epsilonEquals (Vector2 objA, Vector2 objB, float epsilon) {
+		if (Math.abs(objB.x - objA.x) > epsilon) return false;
+		if (Math.abs(objB.y - objA.y) > epsilon) return false;
+		return true;
+	}
+
 	public void update() {
 		Vector2 aA = getJoint().getAnchorA();
 		Vector2 aB = getJoint().getAnchorB();
 
-		if (aA.epsilonEquals(aB, EQUALITY_EPSILON)) {
+		if (epsilonEquals(aA, aB, EQUALITY_EPSILON)) {
 			mXPoints[0] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
 			mYPoints[0] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
 

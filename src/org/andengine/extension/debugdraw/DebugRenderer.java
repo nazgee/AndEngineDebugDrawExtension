@@ -199,10 +199,8 @@ public class DebugRenderer extends Entity {
 		case PulleyJoint:
 		case MouseJoint:
 		case GearJoint:
-		case WheelJoint:
 		case WeldJoint:
 		case FrictionJoint:
-		case RopeJoint:
 			return Color.WHITE;
 
 		case Unknown:
