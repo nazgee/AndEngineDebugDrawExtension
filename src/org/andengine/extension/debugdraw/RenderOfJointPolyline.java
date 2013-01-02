@@ -3,7 +3,6 @@ package org.andengine.extension.debugdraw;
 import org.andengine.extension.debugdraw.primitives.PolyLine;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
-import org.andengine.util.adt.color.Color;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Joint;
@@ -27,7 +26,7 @@ class RenderOfJointPolyline extends RenderOfJoint {
 		mYPoints = new float[4];
 
 		mEntity = new PolyLine(0, 0, mXPoints, mYPoints, pVBO);
-		mEntity.setColor(Color.RED);	// just to overcome some polyline issues
+		mEntity.setColor(1, 1, 1);	// just to overcome some polyline issues
 	}
 
 	@Override
