@@ -91,18 +91,10 @@ public class DebugRenderer extends Entity {
 				renderOfBody.updateColor();
 				// XXX for some reason, setRotationCenter() is not needed on GLES2 branch... why?
 				//renderOfBody.setRotationCenter(body.getMassData().center.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT, body.getMassData().center.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
-				renderOfBody.setRotation((float) (body.getAngle() * (180 / Math.PI)));
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
-								body.getMassData().center.y
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
-				renderOfBody.setRotation((float) (360 - body.getAngle()
-						* (180 / Math.PI)));
-				renderOfBody
-						.setPosition(
-								body.getPosition().x
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
-								body.getPosition().y
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+				renderOfBody.setRotation((float) (360 - body.getAngle() * (180 / Math.PI)));
+				renderOfBody.setPosition(
+								body.getPosition().x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+								body.getPosition().y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
 			}
 			/**
 			 * Get rid of all bodies that were not rendered in this iteration
