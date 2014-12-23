@@ -13,15 +13,18 @@ import com.badlogic.gdx.physics.box2d.Fixture;
  * @author nazgee
  */
 class RenderOfCircleFixture extends RenderOfFixture {
-	public RenderOfCircleFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
+	private float p2m;
+
+	public RenderOfCircleFixture(Fixture fixture, VertexBufferObjectManager pVBO, float p2m) {
 		super(fixture);
+		this.p2m = p2m;
 
 		CircleShape fixtureShape = (CircleShape) fixture.getShape();
 		Vector2 position = fixtureShape.getPosition();
-		float radius = fixtureShape.getRadius() * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+		float radius = fixtureShape.getRadius() * p2m;
 
-		mEntity = new Ellipse(position.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
-				position.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+		mEntity = new Ellipse(position.x * p2m,
+				position.y * p2m,
 				radius, radius, pVBO);
 	}
 }

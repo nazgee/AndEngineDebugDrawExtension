@@ -14,8 +14,11 @@ import com.badlogic.gdx.physics.box2d.Fixture;
  * @author nazgee
  */
 class RenderOfChainFixture extends RenderOfFixture {
-	public RenderOfChainFixture(Fixture fixture, VertexBufferObjectManager pVBO) {
+	private float p2m;
+
+	public RenderOfChainFixture(Fixture fixture, VertexBufferObjectManager pVBO, float p2m) {
 		super(fixture);
+		this.p2m = p2m;
 
 		ChainShape fixtureShape = (ChainShape) fixture.getShape();
 		int vSize = fixtureShape.getVertexCount();
@@ -25,8 +28,8 @@ class RenderOfChainFixture extends RenderOfFixture {
 		Vector2 vertex = Vector2Pool.obtain();
 		for (int i = 0; i < fixtureShape.getVertexCount(); i++) {
 			fixtureShape.getVertex(i, vertex);
-			xPoints[i] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			yPoints[i] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			xPoints[i] = vertex.x * p2m;
+			yPoints[i] = vertex.y * p2m;
 		}
 		Vector2Pool.recycle(vertex);
 

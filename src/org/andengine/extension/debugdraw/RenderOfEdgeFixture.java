@@ -14,9 +14,12 @@ import com.badlogic.gdx.physics.box2d.Fixture;
  * @author OzLark
  */
 class RenderOfEdgeFixture extends RenderOfFixture {
+	private float p2m;
+
 	public RenderOfEdgeFixture(Fixture fixture,
-			VertexBufferObjectManager pVBO) {
+			VertexBufferObjectManager pVBO, float p2m) {
 		super(fixture);
+		this.p2m = p2m;
 
 		EdgeShape fixtureShape = (EdgeShape) fixture.getShape();
 
@@ -26,12 +29,12 @@ class RenderOfEdgeFixture extends RenderOfFixture {
 		Vector2 vertex = Vector2Pool.obtain();
 
 		fixtureShape.getVertex1(vertex);
-		xPoints[0] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-		yPoints[0] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+		xPoints[0] = vertex.x * p2m;
+		yPoints[0] = vertex.y * p2m;
 
 		fixtureShape.getVertex2(vertex);
-		xPoints[1] = vertex.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-		yPoints[1] = vertex.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+		xPoints[1] = vertex.x * p2m;
+		yPoints[1] = vertex.y * p2m;
 
 		Vector2Pool.recycle(vertex);
 

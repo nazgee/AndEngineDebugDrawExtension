@@ -18,9 +18,12 @@ class RenderOfJointPolyline extends RenderOfJoint {
 	private float[] mYPoints;
 	private float mMarkerSize;
 
-	public RenderOfJointPolyline(Joint joint, VertexBufferObjectManager pVBO, float pMarkerSize) {
+	private float p2m;
+
+	public RenderOfJointPolyline(Joint joint, VertexBufferObjectManager pVBO, float pMarkerSize, float p2m) {
 		super(joint);
 		mMarkerSize = pMarkerSize;
+		this.p2m = p2m;
 
 		mXPoints = new float[4];
 		mYPoints = new float[4];
@@ -39,26 +42,26 @@ class RenderOfJointPolyline extends RenderOfJoint {
 		Vector2 aB = getJoint().getAnchorB();
 
 		if (aA.epsilonEquals(aB, EQUALITY_EPSILON)) {
-			mXPoints[0] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
-			mYPoints[0] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
+			mXPoints[0] = aA.x * p2m - mMarkerSize;
+			mYPoints[0] = aA.y * p2m - mMarkerSize;
 
-			mXPoints[1] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT + mMarkerSize;
-			mYPoints[1] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT + mMarkerSize;
+			mXPoints[1] = aA.x * p2m + mMarkerSize;
+			mYPoints[1] = aA.y * p2m + mMarkerSize;
 
-			mXPoints[2] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
-			mYPoints[2] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT + mMarkerSize;
+			mXPoints[2] = aA.x * p2m - mMarkerSize;
+			mYPoints[2] = aA.y * p2m + mMarkerSize;
 
-			mXPoints[3] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT + mMarkerSize;
-			mYPoints[3] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT - mMarkerSize;
+			mXPoints[3] = aA.x * p2m + mMarkerSize;
+			mYPoints[3] = aA.y * p2m - mMarkerSize;
 
 			getEntity().setVertexCountToDraw(4);
 			getEntity().updateVertices(mXPoints, mYPoints);
 		} else {
-			mXPoints[0] = aA.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			mYPoints[0] = aA.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			mXPoints[0] = aA.x * p2m;
+			mYPoints[0] = aA.y * p2m;
 
-			mXPoints[1] = aB.x * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
-			mYPoints[1] = aB.y * PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT;
+			mXPoints[1] = aB.x * p2m;
+			mYPoints[1] = aB.y * p2m;
 
 			getEntity().setVertexCountToDraw(2);
 			getEntity().updateVertices(mXPoints, mYPoints);

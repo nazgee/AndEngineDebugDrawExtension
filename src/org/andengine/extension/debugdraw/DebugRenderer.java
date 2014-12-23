@@ -10,6 +10,7 @@ import java.util.Set;
 import org.andengine.entity.Entity;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
+import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.adt.color.Color;
 
@@ -37,6 +38,7 @@ public class DebugRenderer extends Entity {
 	private final float mJointMarkerSize;
 	private boolean mDrawJoints = true;
 	private boolean mDrawBodies = true;
+	private float p2m;
 
 	/**
 	 * To construct the renderer physical world is needed (to access physics)
@@ -45,14 +47,19 @@ public class DebugRenderer extends Entity {
 	 * @param pVBO
 	 */
 	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO) {
-		this(world, pVBO, 5);
+		this(world, pVBO, PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT);
 	}
 
-	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO, float pJointMarkerSize) {
+	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO, float p2m) {
+		this(world, pVBO, p2m, 5);
+	}
+
+	public DebugRenderer(PhysicsWorld world, VertexBufferObjectManager pVBO, float p2m, float pJointMarkerSize) {
 		super();
 		this.mWorld = world;
 		this.mVBO = pVBO;
 		this.mJointMarkerSize = pJointMarkerSize;
+		this.p2m = p2m;
 	}
 
 	/**
@@ -92,17 +99,17 @@ public class DebugRenderer extends Entity {
 				renderOfBody
 						.setRotationCenter(
 								body.getMassData().center.x
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+										* p2m,
 								body.getMassData().center.y
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+										* p2m);
 				renderOfBody.setRotation((float) (360 - body.getAngle()
 						* (180 / Math.PI)));
 				renderOfBody
 						.setPosition(
 								body.getPosition().x
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT,
+										* p2m,
 								body.getPosition().y
-										* PhysicsConnector.PIXEL_TO_METER_RATIO_DEFAULT);
+										* p2m);
 			}
 			/**
 			 * Get rid of all bodies that were not rendered in this iteration
@@ -128,7 +135,7 @@ public class DebugRenderer extends Entity {
 				IRenderOfJoint renderOfJoint;
 				if (!mJointsToBeRenderred.containsKey(joint)) {
 					renderOfJoint = new RenderOfJointPolyline(joint, mVBO,
-							mJointMarkerSize);
+							mJointMarkerSize, p2m);
 					mJointsToBeRenderred.put(joint, renderOfJoint);
 					this.attachChild(renderOfJoint.getEntity());
 				} else {
@@ -229,13 +236,13 @@ public class DebugRenderer extends Entity {
 			for (Fixture fixture : fixtures) {
 				IRenderOfFixture renderOfFixture;
 				if (fixture.getShape().getType() == Type.Circle) {
-					renderOfFixture = new RenderOfCircleFixture(fixture, pVBO);
+					renderOfFixture = new RenderOfCircleFixture(fixture, pVBO, p2m);
 				} else if (fixture.getShape().getType() == Type.Edge) {
-					renderOfFixture = new RenderOfEdgeFixture(fixture, pVBO);
+					renderOfFixture = new RenderOfEdgeFixture(fixture, pVBO, p2m);
 				} else if (fixture.getShape().getType() == Type.Chain) {
-					renderOfFixture = new RenderOfChainFixture(fixture, pVBO);
+					renderOfFixture = new RenderOfChainFixture(fixture, pVBO, p2m);
 				} else {
-					renderOfFixture = new RenderOfPolyFixture(fixture, pVBO);
+					renderOfFixture = new RenderOfPolyFixture(fixture, pVBO, p2m);
 				}
 
 				updateColor();
