@@ -19,4 +19,5 @@ android {
 
 dependencies {
     compile project(':AndEnginePhysicsBox2DExtension')
+    compile project(':AndEngine')
 }
